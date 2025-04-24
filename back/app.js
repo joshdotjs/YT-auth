@@ -1,8 +1,10 @@
 const express = require('express');
 const app = express();
+const cors = require('cors');
 const bcrypt = require('bcryptjs');
 const db = require('./db/migration');
 
+app.use(cors());
 app.use(express.json());
 
 app.get('/', (req, res) => {
@@ -10,6 +12,7 @@ app.get('/', (req, res) => {
 });
 
 app.post('/register', async (req, res) => {
+  console.log('/register');
   const { username, password } = req.body;
   if (!username || !password) {
     return res.status(400).json({ success: false, message: 'Username and password are required.' });
@@ -29,6 +32,7 @@ app.post('/register', async (req, res) => {
 });
 
 app.post('/login', async (req, res) => {
+  console.log('/login');
   const { username, password } = req.body;
   if (!username || !password) {
     return res.status(400).json({ success: false, message: 'Username and password are required.' });
@@ -49,7 +53,7 @@ app.post('/login', async (req, res) => {
   }
 });
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`API running at http://localhost:${PORT}/`);
 });

@@ -5,17 +5,36 @@ const Register = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Placeholder for registration logic
     if (!username || !password) {
       setError('Please enter both username and password.');
+      setSuccess('');
       return;
     }
     setError('');
-    // TODO: Add registration logic here
-    alert(`Registering with: ${username}`);
+    setSuccess('');
+    try {
+      const response = await fetch('http://localhost:3000/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password }),
+      });
+      const data = await response.json();
+      console.log(data);
+      
+      if (response.ok && data.success) {
+        setSuccess('Registration successful! You can now log in.');
+        setUsername('');
+        setPassword('');
+      } else {
+        setError(data.message || 'Registration failed.');
+      }
+    } catch {
+      setError('Network error. Please try again.');
+    }
   };
 
   return (
@@ -46,6 +65,11 @@ const Register = () => {
           {error && (
             <Typography color="error" variant="body2" sx={{ mt: 1 }}>
               {error}
+            </Typography>
+          )}
+          {success && (
+            <Typography color="primary" variant="body2" sx={{ mt: 1 }}>
+              {success}
             </Typography>
           )}
           <Button type="submit" variant="contained" color="primary" fullWidth sx={{ mt: 2 }}>
