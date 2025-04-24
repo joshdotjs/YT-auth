@@ -28,8 +28,25 @@ app.post('/register', async (req, res) => {
   }
 });
 
-app.post('/login', (req, res) => {
-  res.json({ success: true, message: 'User logged in' });
+app.post('/login', async (req, res) => {
+  const { username, password } = req.body;
+  if (!username || !password) {
+    return res.status(400).json({ success: false, message: 'Username and password are required.' });
+  }
+  try {
+    const stmt = db.prepare('SELECT password FROM users WHERE username = ?');
+    const user = stmt.get(username);
+    if (!user) {
+      return res.status(401).json({ success: false, message: 'Invalid username or password.' });
+    }
+    const passwordMatch = await bcrypt.compare(password, user.password);
+    if (!passwordMatch) {
+      return res.status(401).json({ success: false, message: 'Invalid username or password.' });
+    }
+    res.json({ success: true, message: 'User logged in' });
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Login failed.' });
+  }
 });
 
 const PORT = process.env.PORT || 3000;
