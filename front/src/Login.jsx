@@ -5,17 +5,44 @@ const Login = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  const [loggedInUser, setLoggedInUser] = useState(localStorage.getItem('loggedIn') === 'true' ? localStorage.getItem('username') : '');
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Placeholder for login logic
     if (!username || !password) {
       setError('Please enter both username and password.');
+      setSuccess('');
       return;
     }
     setError('');
-    // TODO: Add authentication logic here
-    alert(`Logging in with: ${username}`);
+    setSuccess('');
+    try {
+      const response = await fetch('http://localhost:3000/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password }),
+      });
+      const data = await response.json();
+      if (response.ok && data.success) {
+        setSuccess('User logged in!');
+        localStorage.setItem('loggedIn', 'true');
+        localStorage.setItem('username', username);
+        setLoggedInUser(username);
+        setUsername('');
+        setPassword('');
+      } else {
+        setError(data.message || 'Login failed.');
+        localStorage.removeItem('loggedIn');
+        localStorage.removeItem('username');
+        setLoggedInUser('');
+      }
+    } catch {
+      setError('Network error. Please try again.');
+      localStorage.removeItem('loggedIn');
+      localStorage.removeItem('username');
+      setLoggedInUser('');
+    }
   };
 
   return (
@@ -24,6 +51,11 @@ const Login = () => {
         <Typography variant="h5" component="h1" gutterBottom align="center">
           Login
         </Typography>
+        {loggedInUser && (
+          <Typography color="primary" variant="body1" align="center" sx={{ mb: 2 }}>
+            Logged in as: {loggedInUser}
+          </Typography>
+        )}
         <form onSubmit={handleSubmit}>
           <TextField
             label="Username"
@@ -46,6 +78,11 @@ const Login = () => {
           {error && (
             <Typography color="error" variant="body2" sx={{ mt: 1 }}>
               {error}
+            </Typography>
+          )}
+          {success && (
+            <Typography color="primary" variant="body2" sx={{ mt: 1 }}>
+              {success}
             </Typography>
           )}
           <Button type="submit" variant="contained" color="primary" fullWidth sx={{ mt: 2 }}>
